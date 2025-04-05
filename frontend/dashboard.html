@@ -119,21 +119,55 @@
         .second-row {
             margin-top: 4rem;
         }
+        .welcome-text-container {
+            position: relative;
+            cursor: pointer;
+        }
+        .welcome-dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 0.5rem 0;
+            min-width: 120px;
+            z-index: 1000;
+        }
+        .welcome-dropdown a {
+            display: block;
+            padding: 0.5rem 1rem;
+            color: #333;
+            text-decoration: none;
+        }
+        .welcome-dropdown a:hover {
+            background: #f8f9fa;
+        }
+        .welcome-text-container:hover .welcome-dropdown {
+            display: block;
+        }
+        .welcome-text {
+            display: inline-block;
+            padding: 0.5rem 0;
+        }
     </style>
 </head>
 <body>
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg">
         <div class="container">
-            <a class="navbar-brand text-dark" href="#">
+            <a class="navbar-brand text-dark" href="/dashboard">
                 <i class="fas fa-heartbeat me-2"></i>ElderEase
             </a>
             <div class="user-info ms-auto">
                 <div class="user-avatar">
                     <i class="fas fa-user"></i>
                 </div>
-                <div>
-                    <span class="text-dark" id="user-name">Welcome, User</span>
+                <div class="welcome-text-container">
+                    <span class="text-dark welcome-text" id="user-name">Welcome, User</span>
+                    <div class="welcome-dropdown">
+                        <a href="#" onclick="logout()"><i class="fas fa-sign-out-alt me-2"></i>Logout</a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -155,7 +189,7 @@
                 <div class="mode-card text-center">
                     <div class="mode-icon">🧠</div>
                     <h3 class="mode-title">Information Mode</h3>
-                    <p class="mode-description">News, weather, and general facts at your fingertips</p>
+                    <p class="mode-description">Ask any question and get instant answers</p>
                 </div>
             </div>
 
@@ -164,7 +198,7 @@
                 <div class="mode-card text-center">
                     <div class="mode-icon">🙏</div>
                     <h3 class="mode-title">Religious Mode</h3>
-                    <p class="mode-description">Mythological stories, scriptures, and teachings</p>
+                    <p class="mode-description">Ask questions about faith, spirituality, and religious practices</p>
                 </div>
             </div>
 
@@ -240,25 +274,17 @@
         const userName = localStorage.getItem('userName') || 'User';
         document.getElementById('user-name').textContent = `Welcome, ${userName}`;
 
-        // Add click handlers for mode cards
+        // Logout function
+        function logout() {
+            localStorage.removeItem('userName');
+            window.location.href = '/';
+        }
+
+        // Add click handlers to mode cards
         document.querySelectorAll('.mode-card').forEach(card => {
             card.addEventListener('click', function() {
-                const mode = this.querySelector('.mode-title').textContent;
-                const modeMap = {
-                    'Information Mode': 'information',
-                    'Religious Mode': 'religious',
-                    'Medical Info Mode': 'medical',
-                    'Entertainment Mode': 'entertainment',
-                    'Order Mode': 'order',
-                    'Communication Mode': 'communication',
-                    'Safety & Security': 'safety',
-                    'AI Companion Mode': 'companion'
-                };
-                
-                const modeKey = modeMap[mode];
-                if (modeKey) {
-                    window.location.href = `/mode?mode=${modeKey}`;
-                }
+                const mode = this.querySelector('.mode-title').textContent.toLowerCase().replace(' mode', '');
+                window.location.href = `/mode?mode=${mode}`;
             });
         });
 

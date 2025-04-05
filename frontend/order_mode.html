@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ElderEase - Order Mode</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 18px;
+        }
+        .mode-header {
+            background: white;
+            padding: 3rem 0;
+            margin-bottom: 3rem;
+            border-radius: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .option-card {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            height: 100%;
+        }
+        .option-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+        }
+        .option-card.active {
+            border: 3px solid #007bff;
+            background-color: #f8f9ff;
+        }
+        .option-icon {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+        }
+        .search-container {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+            display: none;
+        }
+        .back-button {
+            position: fixed;
+            bottom: 2rem;
+            left: 2rem;
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background-color: #007bff;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            border: none;
+        }
+        .back-button:hover {
+            transform: scale(1.1);
+            background-color: #0056b3;
+        }
+        .mode-icon {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+        }
+        .navbar-brand {
+            font-size: 1.5rem;
+        }
+        .user-avatar {
+            width: 60px;
+            height: 60px;
+            font-size: 2rem;
+        }
+        #user-name {
+            font-size: 1.2rem;
+        }
+        .form-control {
+            font-size: 1.2rem;
+            padding: 1rem;
+            height: auto;
+        }
+        .btn {
+            font-size: 1.2rem;
+            padding: 0.75rem 1.5rem;
+        }
+        .voice-btn.recording {
+            background-color: #dc3545;
+            color: white;
+        }
+        .order-details {
+            display: none;
+            margin-top: 1rem;
+        }
+        .order-details.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand text-dark" href="/dashboard">
+                <i class="fas fa-heartbeat me-2"></i>ElderEase
+            </a>
+            <div class="user-info ms-auto">
+                <div class="user-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div>
+                    <span class="text-dark" id="user-name">Welcome, User</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mode Header -->
+    <section class="mode-header">
+        <div class="container text-center">
+            <div class="mode-icon">🛒</div>
+            <h1 class="h1 mb-3">Order Mode</h1>
+            <p class="text-muted h4">Choose what you'd like to order</p>
+        </div>
+    </section>
+
+    <!-- Options Grid -->
+    <div class="container">
+        <div class="row">
+            <!-- Food Order Option -->
+            <div class="col-md-4">
+                <div class="option-card text-center" id="food-option">
+                    <div class="option-icon">🍽️</div>
+                    <h3 class="h3 mb-3">Food Order</h3>
+                    <p class="text-muted">Order your favorite meals</p>
+                </div>
+            </div>
+
+            <!-- Cab Order Option -->
+            <div class="col-md-4">
+                <div class="option-card text-center" id="cab-option">
+                    <div class="option-icon">🚕</div>
+                    <h3 class="h3 mb-3">Cab Order</h3>
+                    <p class="text-muted">Book a ride to your destination</p>
+                </div>
+            </div>
+
+            <!-- Daily Accessories Option -->
+            <div class="col-md-4">
+                <div class="option-card text-center" id="accessories-option">
+                    <div class="option-icon">🛍️</div>
+                    <h3 class="h3 mb-3">Daily Accessories</h3>
+                    <p class="text-muted">Order daily essentials</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search Container -->
+        <div class="search-container" id="search-container">
+            <div class="input-group">
+                <button class="btn btn-outline-secondary voice-btn" id="voice-btn" type="button">
+                    <i class="fas fa-microphone"></i>
+                </button>
+                <input type="text" class="form-control" id="search-input" placeholder="What would you like to order?">
+                <button class="btn btn-primary" id="search-btn">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+            
+            <!-- Order Details Container -->
+            <div class="order-details" id="order-details">
+                <div class="mt-3">
+                    <h4>Order Details</h4>
+                    <div id="order-summary"></div>
+                    <button class="btn btn-success mt-3" id="confirm-order">
+                        <i class="fas fa-check"></i> Confirm Order
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Back Button -->
+    <button class="back-button" onclick="window.location.href='/dashboard'">
+        <i class="fas fa-arrow-left"></i>
+    </button>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Get user's name from localStorage
+        const userName = localStorage.getItem('userName') || 'User';
+        document.getElementById('user-name').textContent = `Welcome, ${userName}`;
+
+        let selectedOption = null;
+        let recognition;
+
+        // Voice recognition setup
+        if ('webkitSpeechRecognition' in window) {
+            recognition = new webkitSpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+
+            recognition.onstart = () => {
+                document.getElementById('voice-btn').classList.add('recording');
+            };
+
+            recognition.onend = () => {
+                document.getElementById('voice-btn').classList.remove('recording');
+            };
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                document.getElementById('search-input').value = transcript;
+                processOrder(transcript);
+            };
+
+            document.getElementById('voice-btn').addEventListener('click', () => {
+                if (selectedOption) {
+                    recognition.start();
+                }
+            });
+        } else {
+            document.getElementById('voice-btn').style.display = 'none';
+        }
+
+        // Handle option selection
+        document.getElementById('food-option').addEventListener('click', function() {
+            selectOption('food', this);
+        });
+
+        document.getElementById('cab-option').addEventListener('click', function() {
+            selectOption('cab', this);
+        });
+
+        document.getElementById('accessories-option').addEventListener('click', function() {
+            selectOption('accessories', this);
+        });
+
+        function selectOption(option, element) {
+            // Remove active class from all options
+            document.querySelectorAll('.option-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            // Add active class to selected option
+            element.classList.add('active');
+            
+            selectedOption = option;
+            document.getElementById('search-container').style.display = 'block';
+            
+            // Update placeholder based on selected option
+            let placeholder = '';
+            switch(option) {
+                case 'food':
+                    placeholder = 'What food would you like to order?';
+                    break;
+                case 'cab':
+                    placeholder = 'Where would you like to go?';
+                    break;
+                case 'accessories':
+                    placeholder = 'What items would you like to order?';
+                    break;
+            }
+            document.getElementById('search-input').placeholder = placeholder;
+            document.getElementById('search-input').focus();
+        }
+
+        // Handle search
+        document.getElementById('search-btn').addEventListener('click', function() {
+            const query = document.getElementById('search-input').value.trim();
+            if (query) {
+                processOrder(query);
+            }
+        });
+
+        document.getElementById('search-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const query = this.value.trim();
+                if (query) {
+                    processOrder(query);
+                }
+            }
+        });
+
+        function processOrder(query) {
+            const orderDetails = document.getElementById('order-details');
+            const orderSummary = document.getElementById('order-summary');
+            
+            // Clear previous order summary
+            orderSummary.innerHTML = '';
+            
+            // Create order summary based on selected option
+            let summary = '';
+            switch(selectedOption) {
+                case 'food':
+                    summary = `
+                        <p><strong>Food Order:</strong> ${query}</p>
+                        <p><strong>Status:</strong> Processing</p>
+                        <p><strong>Estimated Delivery:</strong> 30-45 minutes</p>
+                    `;
+                    break;
+                case 'cab':
+                    summary = `
+                        <p><strong>Destination:</strong> ${query}</p>
+                        <p><strong>Status:</strong> Finding available cabs</p>
+                        <p><strong>Estimated Arrival:</strong> 5-10 minutes</p>
+                    `;
+                    break;
+                case 'accessories':
+                    summary = `
+                        <p><strong>Items:</strong> ${query}</p>
+                        <p><strong>Status:</strong> Processing</p>
+                        <p><strong>Estimated Delivery:</strong> 1-2 days</p>
+                    `;
+                    break;
+            }
+            
+            orderSummary.innerHTML = summary;
+            orderDetails.classList.add('active');
+        }
+
+        // Handle order confirmation
+        document.getElementById('confirm-order').addEventListener('click', function() {
+            const query = document.getElementById('search-input').value.trim();
+            if (query) {
+                // Send order to backend
+                fetch('/api/modes/order', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        type: selectedOption,
+                        query: query
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        // Open the search results in a new tab
+                        window.open(data.url, '_blank');
+                        alert(data.message);
+                    } else {
+                        alert('Error: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    alert('Error placing order: ' + error);
+                });
+                
+                // Reset the form
+                document.getElementById('search-input').value = '';
+                document.getElementById('order-details').classList.remove('active');
+                document.querySelectorAll('.option-card').forEach(card => {
+                    card.classList.remove('active');
+                });
+                document.getElementById('search-container').style.display = 'none';
+                selectedOption = null;
+            }
+        });
+    </script>
+</body>
+</html> 

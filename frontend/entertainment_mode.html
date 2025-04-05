@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ElderEase - Entertainment Mode</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 18px;
+        }
+        .mode-header {
+            background: white;
+            padding: 3rem 0;
+            margin-bottom: 3rem;
+            border-radius: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .option-card {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            height: 100%;
+        }
+        .option-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+        }
+        .option-icon {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+        }
+        .search-container {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+            display: none;
+        }
+        .back-button {
+            position: fixed;
+            bottom: 2rem;
+            left: 2rem;
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background-color: #007bff;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            border: none;
+        }
+        .back-button:hover {
+            transform: scale(1.1);
+            background-color: #0056b3;
+        }
+        .mode-icon {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+        }
+        .navbar-brand {
+            font-size: 1.5rem;
+        }
+        .user-avatar {
+            width: 60px;
+            height: 60px;
+            font-size: 2rem;
+        }
+        #user-name {
+            font-size: 1.2rem;
+        }
+        .form-control {
+            font-size: 1.2rem;
+            padding: 1rem;
+            height: auto;
+        }
+        .btn {
+            font-size: 1.2rem;
+            padding: 0.75rem 1.5rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand text-dark" href="/dashboard">
+                <i class="fas fa-heartbeat me-2"></i>ElderEase
+            </a>
+            <div class="user-info ms-auto">
+                <div class="user-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div>
+                    <span class="text-dark" id="user-name">Welcome, User</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mode Header -->
+    <section class="mode-header">
+        <div class="container text-center">
+            <div class="mode-icon">🎵</div>
+            <h1 class="h1 mb-3">Entertainment Mode</h1>
+            <p class="text-muted h4">Choose what you'd like to enjoy</p>
+        </div>
+    </section>
+
+    <!-- Options Grid -->
+    <div class="container">
+        <div class="row">
+            <!-- Music Option -->
+            <div class="col-md-6">
+                <div class="option-card text-center" id="music-option">
+                    <div class="option-icon">🎵</div>
+                    <h3 class="h3 mb-3">Listen to Music</h3>
+                    <p class="text-muted">Search and play your favorite songs</p>
+                </div>
+            </div>
+
+            <!-- Shows Option -->
+            <div class="col-md-6">
+                <div class="option-card text-center" id="shows-option">
+                    <div class="option-icon">📺</div>
+                    <h3 class="h3 mb-3">Watch Shows</h3>
+                    <p class="text-muted">Find and watch your favorite shows</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search Container -->
+        <div class="search-container" id="search-container">
+            <div class="input-group">
+                <button class="btn btn-outline-secondary voice-btn" id="voice-btn" type="button">
+                    <i class="fas fa-microphone"></i>
+                </button>
+                <input type="text" class="form-control" id="search-input" placeholder="What would you like to watch/listen to?">
+                <button class="btn btn-primary" id="search-btn">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Back Button -->
+    <button class="back-button" onclick="window.location.href='/dashboard'">
+        <i class="fas fa-arrow-left"></i>
+    </button>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Get user's name from localStorage
+        const userName = localStorage.getItem('userName') || 'User';
+        document.getElementById('user-name').textContent = `Welcome, ${userName}`;
+
+        let selectedOption = null;
+        let recognition;
+
+        // Voice recognition setup
+        if ('webkitSpeechRecognition' in window) {
+            recognition = new webkitSpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+
+            recognition.onstart = () => {
+                document.getElementById('voice-btn').classList.add('recording');
+            };
+
+            recognition.onend = () => {
+                document.getElementById('voice-btn').classList.remove('recording');
+            };
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                document.getElementById('search-input').value = transcript;
+                // Automatically trigger search after voice input
+                const searchQuery = encodeURIComponent(transcript);
+                let url;
+                if (selectedOption === 'music') {
+                    url = `https://music.youtube.com/search?q=${searchQuery}`;
+                } else {
+                    url = `https://www.youtube.com/results?search_query=${searchQuery}`;
+                }
+                window.open(url, '_blank');
+            };
+
+            document.getElementById('voice-btn').addEventListener('click', () => {
+                if (selectedOption) {
+                    recognition.start();
+                }
+            });
+        } else {
+            document.getElementById('voice-btn').style.display = 'none';
+        }
+
+        // Handle option selection
+        document.getElementById('music-option').addEventListener('click', function() {
+            // Remove active class from all options
+            document.querySelectorAll('.option-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            // Add active class to selected option
+            this.classList.add('active');
+            
+            selectedOption = 'music';
+            document.getElementById('search-container').style.display = 'block';
+            document.getElementById('search-input').placeholder = 'What music would you like to listen to?';
+            document.getElementById('search-input').focus();
+        });
+
+        document.getElementById('shows-option').addEventListener('click', function() {
+            // Remove active class from all options
+            document.querySelectorAll('.option-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            // Add active class to selected option
+            this.classList.add('active');
+            
+            selectedOption = 'shows';
+            document.getElementById('search-container').style.display = 'block';
+            document.getElementById('search-input').placeholder = 'What show would you like to watch?';
+            document.getElementById('search-input').focus();
+        });
+
+        // Handle search
+        document.getElementById('search-btn').addEventListener('click', function() {
+            const query = document.getElementById('search-input').value.trim();
+            if (query) {
+                const searchQuery = encodeURIComponent(query);
+                let url;
+                if (selectedOption === 'music') {
+                    url = `https://music.youtube.com/search?q=${searchQuery}`;
+                } else {
+                    url = `https://www.youtube.com/results?search_query=${searchQuery}`;
+                }
+                window.open(url, '_blank');
+            }
+        });
+
+        document.getElementById('search-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const query = this.value.trim();
+                if (query) {
+                    const searchQuery = encodeURIComponent(query);
+                    let url;
+                    if (selectedOption === 'music') {
+                        url = `https://music.youtube.com/search?q=${searchQuery}`;
+                    } else {
+                        url = `https://www.youtube.com/results?search_query=${searchQuery}`;
+                    }
+                    window.open(url, '_blank');
+                }
+            }
+        });
+    </script>
+</body>
+</html> 

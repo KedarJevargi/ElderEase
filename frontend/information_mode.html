@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ElderEase - Information Mode</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 18px;
+        }
+        .mode-header {
+            background: white;
+            padding: 3rem 0;
+            margin-bottom: 3rem;
+            border-radius: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .search-container {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+        }
+        .chat-container {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            height: 500px;
+            overflow-y: auto;
+            margin-bottom: 2rem;
+        }
+        .message {
+            margin-bottom: 1.5rem;
+            padding: 1.5rem;
+            border-radius: 15px;
+            max-width: 80%;
+            font-size: 1.2rem;
+            line-height: 1.6;
+        }
+        .user-message {
+            background-color: #007bff;
+            color: white;
+            margin-left: auto;
+        }
+        .bot-message {
+            background-color: #f8f9fa;
+            color: #212529;
+            margin-right: auto;
+            border: 1px solid #dee2e6;
+        }
+        .input-group {
+            margin-bottom: 1rem;
+        }
+        .form-control {
+            font-size: 1.2rem;
+            padding: 1rem;
+            height: auto;
+        }
+        .btn {
+            font-size: 1.2rem;
+            padding: 0.75rem 1.5rem;
+        }
+        .voice-btn {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.5rem;
+            padding: 0.75rem 1.5rem;
+        }
+        .voice-btn:hover {
+            transform: scale(1.1);
+        }
+        .voice-btn.recording {
+            color: #dc3545;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        .back-button {
+            position: fixed;
+            bottom: 2rem;
+            left: 2rem;
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background-color: #007bff;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            border: none;
+        }
+        .back-button:hover {
+            transform: scale(1.1);
+            background-color: #0056b3;
+        }
+        .mode-icon {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+        }
+        .navbar-brand {
+            font-size: 1.5rem;
+        }
+        .user-avatar {
+            width: 60px;
+            height: 60px;
+            font-size: 2rem;
+        }
+        #user-name {
+            font-size: 1.2rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand text-dark" href="/dashboard">
+                <i class="fas fa-heartbeat me-2"></i>ElderEase
+            </a>
+            <div class="user-info ms-auto">
+                <div class="user-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div>
+                    <span class="text-dark" id="user-name">Welcome, User</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mode Header -->
+    <section class="mode-header">
+        <div class="container text-center">
+            <div class="mode-icon">🧠</div>
+            <h1 class="h1 mb-3">Information Mode</h1>
+            <p class="text-muted h4">Ask any question and get instant answers</p>
+        </div>
+    </section>
+
+    <!-- Search and Chat Container -->
+    <div class="container">
+        <div class="search-container">
+            <div class="input-group">
+                <button class="btn btn-outline-primary me-2" id="tts-btn">
+                    <i class="fas fa-volume-up"></i>
+                </button>
+                <input type="text" class="form-control" id="user-input" placeholder="Type your question here...">
+                <button class="btn btn-outline-secondary voice-btn" id="voice-btn" type="button">
+                    <i class="fas fa-microphone"></i>
+                </button>
+                <button class="btn btn-primary" id="send-btn" type="button">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="chat-container" id="chat-container">
+            <!-- Chat messages will appear here -->
+        </div>
+    </div>
+
+    <!-- Back Button -->
+    <button class="back-button" onclick="window.location.href='/dashboard'">
+        <i class="fas fa-arrow-left"></i>
+    </button>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Get user's name from localStorage
+        const userName = localStorage.getItem('userName') || 'User';
+        document.getElementById('user-name').textContent = `Welcome, ${userName}`;
+
+        // Voice recognition setup
+        const voiceBtn = document.getElementById('voice-btn');
+        const userInput = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+        const chatContainer = document.getElementById('chat-container');
+        let recognition;
+
+        if ('webkitSpeechRecognition' in window) {
+            recognition = new webkitSpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+
+            recognition.onstart = () => {
+                voiceBtn.classList.add('recording');
+            };
+
+            recognition.onend = () => {
+                voiceBtn.classList.remove('recording');
+            };
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                userInput.value = transcript;
+            };
+
+            voiceBtn.addEventListener('click', () => {
+                recognition.start();
+            });
+        } else {
+            voiceBtn.style.display = 'none';
+        }
+
+        // Function to add message to chat
+        function addMessage(message, isUser) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
+            messageDiv.textContent = message;
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        // Function to send message to backend
+        async function sendMessage(message) {
+            try {
+                addMessage("Thinking...", false);
+                const response = await fetch('/api/modes/information', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        user_id: localStorage.getItem('userName'),
+                        query: message
+                    })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    // Remove "Thinking..." message
+                    chatContainer.removeChild(chatContainer.lastChild);
+                    if (data.response) {
+                        addMessage(data.response, false);
+                        // Speak the response
+                        speakText(data.response);
+                    } else {
+                        addMessage('Sorry, I received an empty response. Please try again.', false);
+                    }
+                } else {
+                    // Remove "Thinking..." message
+                    chatContainer.removeChild(chatContainer.lastChild);
+                    const errorMessage = data.error || 'Sorry, I encountered an error. Please try again.';
+                    addMessage(errorMessage, false);
+                    console.error('Error:', errorMessage);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                // Remove "Thinking..." message
+                chatContainer.removeChild(chatContainer.lastChild);
+                addMessage('Sorry, I encountered an error. Please try again.', false);
+            }
+        }
+
+        // Text-to-speech function
+        function speakText(text) {
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.rate = 0.9; // Slightly slower rate for better comprehension
+                utterance.pitch = 1.0;
+                utterance.volume = 1.0;
+                window.speechSynthesis.speak(utterance);
+            } else {
+                console.log('Text-to-speech not supported in this browser');
+            }
+        }
+
+        // Add a button to toggle text-to-speech
+        const ttsButton = document.getElementById('tts-btn');
+        ttsButton.onclick = function() {
+            if (window.speechSynthesis.speaking) {
+                window.speechSynthesis.cancel();
+                this.innerHTML = '<i class="fas fa-volume-up"></i>';
+            } else {
+                const lastBotMessage = document.querySelector('.bot-message:last-child');
+                if (lastBotMessage) {
+                    speakText(lastBotMessage.textContent);
+                    this.innerHTML = '<i class="fas fa-volume-mute"></i>';
+                }
+            }
+        };
+
+        // Event listeners for sending messages
+        sendBtn.addEventListener('click', () => {
+            const message = userInput.value.trim();
+            if (message) {
+                addMessage(message, true);
+                sendMessage(message);
+                userInput.value = '';
+            }
+        });
+
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const message = userInput.value.trim();
+                if (message) {
+                    addMessage(message, true);
+                    sendMessage(message);
+                    userInput.value = '';
+                }
+            }
+        });
+    </script>
+</body>
+</html> 

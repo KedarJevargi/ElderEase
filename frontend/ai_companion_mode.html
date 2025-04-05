@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ElderEase - AI Companion Mode</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 18px;
+        }
+        .mode-header {
+            background: white;
+            padding: 3rem 0;
+            margin-bottom: 3rem;
+            border-radius: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .chat-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+            height: 60vh;
+            overflow-y: auto;
+        }
+        .message {
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 15px;
+            max-width: 80%;
+        }
+        .user-message {
+            background-color: #007bff;
+            color: white;
+            margin-left: auto;
+        }
+        .ai-message {
+            background-color: #f1f1f1;
+            color: black;
+            margin-right: auto;
+        }
+        .back-button {
+            position: fixed;
+            bottom: 2rem;
+            left: 2rem;
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background-color: #007bff;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            border: none;
+        }
+        .back-button:hover {
+            transform: scale(1.1);
+            background-color: #0056b3;
+        }
+        .mode-icon {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+        }
+        .navbar-brand {
+            font-size: 1.5rem;
+        }
+        .user-avatar {
+            width: 60px;
+            height: 60px;
+            font-size: 2rem;
+        }
+        #user-name {
+            font-size: 1.2rem;
+        }
+        .mic-button {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-color: #007bff;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            border: none;
+            margin: 2rem auto;
+        }
+        .mic-button.recording {
+            background-color: #dc3545;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        .status-message {
+            text-align: center;
+            margin-top: 1rem;
+            font-size: 1.2rem;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand text-dark" href="/dashboard">
+                <i class="fas fa-heartbeat me-2"></i>ElderEase
+            </a>
+            <div class="user-info ms-auto">
+                <div class="user-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div>
+                    <span class="text-dark" id="user-name">Welcome, User</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mode Header -->
+    <section class="mode-header">
+        <div class="container text-center">
+            <div class="mode-icon">🤖</div>
+            <h1 class="h1 mb-3">AI Companion Mode</h1>
+            <p class="text-muted h4">Talk to your AI companion</p>
+        </div>
+    </section>
+
+    <!-- Chat Container -->
+    <div class="container">
+        <div class="chat-container" id="chat-container">
+            <!-- Messages will be added here -->
+        </div>
+        
+        <!-- Mic Button -->
+        <button class="mic-button" id="mic-button">
+            <i class="fas fa-microphone"></i>
+        </button>
+        
+        <!-- Status Message -->
+        <div class="status-message" id="status-message">
+            Click the microphone to start talking
+        </div>
+    </div>
+
+    <!-- Back Button -->
+    <button class="back-button" onclick="window.location.href='/dashboard'">
+        <i class="fas fa-arrow-left"></i>
+    </button>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Get user's name from localStorage
+        const userName = localStorage.getItem('userName') || 'User';
+        document.getElementById('user-name').textContent = `Welcome, ${userName}`;
+
+        let recognition;
+        let synthesis = window.speechSynthesis;
+        let isListening = false;
+
+        // Initialize speech recognition
+        if ('webkitSpeechRecognition' in window) {
+            recognition = new webkitSpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+
+            recognition.onstart = () => {
+                isListening = true;
+                document.getElementById('mic-button').classList.add('recording');
+                document.getElementById('status-message').textContent = 'Listening...';
+            };
+
+            recognition.onend = () => {
+                isListening = false;
+                document.getElementById('mic-button').classList.remove('recording');
+                document.getElementById('status-message').textContent = 'Click the microphone to start talking';
+            };
+
+            recognition.onresult = async (event) => {
+                const transcript = event.results[0][0].transcript;
+                
+                // Add user message to chat
+                addMessage(transcript, 'user');
+                
+                // Send to backend and get AI response
+                try {
+                    const response = await fetch('/api/modes/ai-companion', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ message: transcript })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.status === 'success') {
+                        // Add AI message to chat
+                        addMessage(data.response, 'ai');
+                        
+                        // Speak the response
+                        speakText(data.response);
+                    } else {
+                        addMessage('Sorry, I encountered an error.', 'ai');
+                    }
+                } catch (error) {
+                    addMessage('Sorry, I encountered an error.', 'ai');
+                }
+            };
+
+            recognition.onerror = (event) => {
+                console.error('Speech recognition error:', event.error);
+                document.getElementById('status-message').textContent = 'Error: ' + event.error;
+            };
+        } else {
+            document.getElementById('status-message').textContent = 'Speech recognition not supported in this browser';
+            document.getElementById('mic-button').style.display = 'none';
+        }
+
+        // Handle mic button click
+        document.getElementById('mic-button').addEventListener('click', () => {
+            if (!isListening) {
+                recognition.start();
+            } else {
+                recognition.stop();
+            }
+        });
+
+        // Function to add message to chat
+        function addMessage(text, sender) {
+            const chatContainer = document.getElementById('chat-container');
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message');
+            messageDiv.classList.add(sender === 'user' ? 'user-message' : 'ai-message');
+            messageDiv.textContent = text;
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        // Function to speak text
+        function speakText(text) {
+            if (synthesis.speaking) {
+                synthesis.cancel();
+            }
+            
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 0.9;
+            utterance.pitch = 1;
+            utterance.volume = 1;
+            
+            synthesis.speak(utterance);
+        }
+    </script>
+</body>
+</html> 
